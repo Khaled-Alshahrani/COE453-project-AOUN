@@ -1,66 +1,36 @@
 const functions = require("@google-cloud/functions-framework");
-const mongoose = require("mongoose");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 
-functions.http("get", "/get-event/:id", async (req, res) => {
+functions.http("getitem", async (req, res) => {
+  const mongoUrl = "mongodb+srv://aziz:aziz@coe453.i09yrhr.mongodb.net/?retryWrites=true&w=majority&appName=COE453";
+  const client = new MongoClient(mongoUrl, {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
+  });
+
   try {
-    // Connect to MongoDB Atlas
-    const database = mongoose.createConnection("mongodb+srv://admin:admin@coe453.i09yrhr.mongodb.net/?retryWrites=true&w=majority&appName=COE453");
+    await client.connect();
+    const db = client.db("items"); // Replace 'FinalProject' with your database name
+    const collection = db.collection("items"); // Replace 'BMI records' with your collection name
 
-    database.on("error", () => console.log("Cannot connect to database!"));
-    database.once("open", () => console.log("Connected to database..."));
+    const update = {
+      $set: {
+        taken: true,
+        requester_student_id: req.body.requesterId,
+        requested_at: new Date(),
+      },
+    };
 
-    // Define the schema
-    const EventSchema = new mongoose.Schema({
-      id: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-      },
-      created_at: {
-        type: Date,
-        required: true,
-        default: Date.now,
-      },
-      owner_student_id: {
-        type: String,
-        required: true,
-      },
-      contact_number: {
-        type: String,
-      },
-      title: {
-        type: String,
-        required: true,
-      },
-      description: {
-        type: String,
-      },
-      taken: {
-        type: Boolean,
-        default: false,
-      },
-      requester_student_id: {
-        type: String,
-      },
-      requested_at: {
-        type: Date,
-      },
-    });
 
-    // Create the model
-    const Event = database.model("Event", EventSchema);
-
-    const eventId = req.params.id;
-
-    // Find event by ID
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.status(404).send("Event not found");
-    }
-
-    res.json(event);
+    const response = await collection.findOneAndUpdate({ id: req.body.id }, update, { returnOriginal: false });
+    res.status(200).json(response.value);
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error retrieving item records:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    await client.close();
   }
 });
