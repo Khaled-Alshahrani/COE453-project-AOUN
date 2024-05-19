@@ -3,9 +3,6 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const { v4: uuidv4 } = require("uuid");
 
 functions.http("additem", async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "GET, POST");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     res.status(204).send("");
