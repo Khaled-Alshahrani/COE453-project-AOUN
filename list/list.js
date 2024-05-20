@@ -15,8 +15,8 @@ app.get("/list", async (req, res) => {
 
   try {
     await client.connect();
-    const db = client.db("items"); // Replace 'FinalProject' with your database name
-    const collection = db.collection("items"); // Replace 'BMI records' with your collection name
+    const db = client.db("items"); 
+    const collection = db.collection("items"); 
 
     const records = await collection.find().toArray();
     res.status(200).json(records);
